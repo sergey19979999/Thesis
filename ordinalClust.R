@@ -47,12 +47,8 @@ kc_2 <- c(5,2)
 d.list_2 <- c(1,30)
 browser()
 
-data_matrix_onelevel <- data_matrix[1:100,1:29]
 
-# object <- boscoclust(x = data_matrix_onelevel,kr = 10, kc = 5, m = 6,
-#                 nbSEM = nbsem,
-#                 nbSEMburn = nbsemburn, nbindmini = nbindmini,
-#                 init = init)
+
 object_twolevels <- boscoclust(x = data_matrix,kr = kr_2, kc = kc_2, m = m_2,
                 idx_list = d.list_2, nbSEM = nbsem,
                 nbSEMburn = nbsemburn, nbindmini = nbindmini,
