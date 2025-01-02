@@ -6,7 +6,7 @@ data <- read.csv("ESS11/ESS11_ita_prepro.csv")
 # Exclude columns prtclfit, prtvteit, lrscale
 data <- subset(data, select = -c(prtvteit, prtclfit,lrscale))
 # Convert columns to ordered factors, ensuring that they are not character type
-data[1:40] <- lapply(data[1:40], function(x) if(is.character(x)) factor(x, ordered = TRUE) else x)
+data[1:60] <- lapply(data[1:60], function(x) if(is.character(x)) factor(x, ordered = TRUE) else x)
 
 # Calculate the number of unique levels per column excluding NAs and handling data types properly
 levels_count <- sapply(data, function(x) {
@@ -41,15 +41,15 @@ init <- "random"
 
 print(ordered_levels_info)
 
-m_2<- c(6,11)
-kr_2<- 10
-kc_2 <- c(5,2)
-d.list_2 <- c(1,30)
+levels <- c(2,3,4,5,6,7,11)
+krow <- 10
+kcol <- c(5,1,2,2,5,2,3)
+indexes <- c(1,9,10,14,21,45,50)
 browser()
 
 
 
-object_twolevels <- boscoclust(x = data_matrix,kr = kr_2, kc = kc_2, m = m_2,
-                idx_list = d.list_2, nbSEM = nbsem,
+object_twolevels <- boscoclust(x = data_matrix,kr = krow, kc = kcol, m = levels,
+                idx_list = indexes, nbSEM = nbsem,
                 nbSEMburn = nbsemburn, nbindmini = nbindmini,
                 init = init)
