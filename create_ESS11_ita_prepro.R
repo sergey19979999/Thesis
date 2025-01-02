@@ -26,36 +26,34 @@ data$Age <- case_when(
   data$Age == "older than 70" ~ 6,
 )
 
-data$likrisk <- case_when(
-  data$likrisk %in% c(0,1,2,3,4) ~ data$likrisk + 1,
-  data$likrisk %in% c(5,6)~ 6,
+data$vteurmmb <- case_when(
+  data$vteurmmb == 1 ~ 1,
+  data$vteurmmb %in% c(33,44,55) ~ 2,
+  data$vteurmmb == 2 ~ 3,
 )
 
-data$liklead <- case_when(
-  data$liklead %in% c(0,1,2,3,4) ~ data$liklead + 1,
-  data$liklead %in% c(5,6)~ 6,
+data$mbtru <- case_when(
+  data$mbtru %in% c(1,2) ~ 1,
+  data$mbtru == 3 ~ 2,
 )
 
-data$sothnds <- case_when(
-  data$sothnds %in% c(0,1) ~ 1,
-  data$sothnds %in% c(2,3,4,5,6)~ data$sothnds,
+data$domicil <- case_when(
+  data$domicil == 1 ~ 5,
+  data$domicil == 2 ~ 4,
+  data$domicil == 3 ~ 3,
+  data$domicil == 4 ~ 2,
+  data$domicil == 5 ~ 1,
 )
 
-data$eqpolbg <- case_when(
-  data$eqpolbg %in% c(0,1) ~ 1,
-  data$eqpolbg %in% c(2,3,4,5,6)~ data$eqpolbg,
+data$emplrel <- case_when(
+  data$emplrel %in% c(2,3) ~ 2,
+  data$emplrel == 1 ~ 1,
 )
-
-data$eqwrkbg <- case_when(
-  data$eqwrkbg %in% c(0,1) ~ 1,
-  data$eqwrkbg %in% c(2,3,4,5,6)~ data$eqwrkbg,
-)
-
 #merge level for educational level
 data$edlvfit <- as.numeric(as.character(data$edlvfit))
 # Now apply the transformation with case_when
 data$edlvfit <- case_when(
-  data$edlvfit <= 2 ~ 1,
+  data$edlvfit <= 2 ~ data$edlvfit ,
   data$edlvfit %in% 3:6 ~ 2,
   data$edlvfit %in% 7:11 ~ 3,
   data$edlvfit %in% 12:16 ~ 4,
