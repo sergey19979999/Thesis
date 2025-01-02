@@ -42,14 +42,17 @@ init <- "random"
 print(ordered_levels_info)
 
 levels <- c(2,3,4,5,6,7,11)
-krow <- 10
+krow <- 12
 kcol <- c(5,1,2,2,5,2,3)
 indexes <- c(1,9,10,14,21,45,50)
 browser()
 
+time_taken <- system.time({
+  object_twolevels <- bosclust(x = data_matrix, kr = krow, m = levels,
+                               idx_list = indexes, nbSEM = nbsem,
+                               nbSEMburn = nbsemburn, nbindmini = nbindmini,
+                               init = init)
+})
 
-
-object_twolevels <- boscoclust(x = data_matrix,kr = krow, kc = kcol, m = levels,
-                idx_list = indexes, nbSEM = nbsem,
-                nbSEMburn = nbsemburn, nbindmini = nbindmini,
-                init = init)
+# Print the time taken
+print(time_taken)
