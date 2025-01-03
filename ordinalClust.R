@@ -70,13 +70,16 @@ indexes <- c(1,9,10,14,21,45)
 object_list <- result_list <- vector("list", 10)
 time_taken_list <- rep(0,10)
 icl <- rep(0,10)
+browser()
 for(kr in 3:12){
-    time_taken <- system.time({object <- bosclust(x = data_matrix, kr = kr, m = levels, nbSEM = nbsem,
-                nbSEMburn = nbSEMburn, nbindmini = nbindmini,
+    time_taken <- system.time({object <- bosclust(x = data_matrix, kr = kr, m = levels, 
+                idx_list = indexes, nbSEM = nbsem,
+                nbSEMburn = nbsemburn, nbindmini = nbindmini,
                 init = init)}
     )
     object_list[[kr-2]] <- object
     time_taken_list[kr-2] <- time_taken
+    print(time_taken)
     if(length(object@icl)) icl[kr-2] <- object@icl
 }
 browser()

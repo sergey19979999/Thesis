@@ -4,46 +4,62 @@ library(gridExtra)
 library(ggplot2)
 library(RColorBrewer)  # To get a palette of colors
 
-# Leggere il file CSV
+# Read CSV file
 data <- read.csv("ESS11/ESS11_ita_prepro.csv")
+browser()
+# Transform binary variables (columns 1-8) from 1,2 to 0,1 and ensure they are numeric
+data[, 43:50] <- lapply(data[, 43:50], function(x) as.numeric(as.character(x)) - 1)
 
-# Escludere le ultime 3 variabili
-data <- data[, 1:(ncol(data) - 3)]
+# Ensure ordinal variables are treated as such
+data[c(3:42,51:63)] <- lapply(data[9:63], as.ordered)
 
-# Trasformare le variabili binarie (colonne 1-8) da 1,2 a 0,1 e assicurarsi che siano numeriche
-data[, 1:8] <- lapply(data[, 1:8], function(x) as.numeric(as.character(x)) - 1)
+# Include the 'prtvteit' variable for coloring
+data$prtvteit <- as.factor(data$prtvteit)
+data$prtclfit <- as.factor(data$prtvteprtclfitit)
 
-# Assicurarsi che le variabili ordinali siano trattate come tali
-data[9:60] <- lapply(data[9:60], as.ordered)
+# Create a vector of variable types for Gower distance calculation
+variable_types <- list(
+  ord = c(3:42,51:63),  # Columns 1-42 and 51-63 as ordinal
+  symm = 43:50,
+  asymm = 1:2          # Columns 43-50 as symmetric
+)
 
-# Creare un vettore dei tipi di variabili per il calcolo di Gower
-variable_types <- c(rep("symm", 8), rep("ord", 52))
+# Calculation of Gower distance matrix
+gower_distance <- daisy(data, metric = "gower", type = variable_types)
 
-# Calcolo della matrice delle distanze di Gower
-gower_distance <- daisy(data, metric = "gower", type = list(symm = 1:8, ord = 9:60))
-
-# Calcolo del Multidimensional Scaling bidimensionale con smacof
+# Calculation of two-dimensional Multidimensional Scaling with smacof
 mds_result <- mds(gower_distance, ndim = 5)
 coordinates <- as.data.frame(mds_result$conf)
-colnames(coordinates) <- paste("Dim", 1:5, sep = ".")
+coordinates$prtvteit <- data$prtvteit  # Add 'prtvteit' to coordinates for plotting
+colnames(coordinates) <- c(paste("Dim", 1:5, sep = "."), "prtvteit")
 
-# Generate a color palette
-colors <- brewer.pal(5, "Set1")  # Using a palette with 5 distinct colors
+party_labels <- setNames(as.character(1:11), c("Fratelli d'Italia", "Partito Democratico (PD)", "Movimento 5 Stelle",
+                                              "Lega", "Forza Italia", "Terzo Polo (Azione-Italia Viva)",
+                                              "Alleanza Verdi e Sinistra", "+ Europa", "Italexit",
+                                              "Unione Popolare", "Italia Sovrana e Popolare"))
+party_labels["31"] <- "Altro"  # Add the 'Altro' label
+
+data$prtvteit <- factor(data$prtvteit, levels = names(party_labels), labels = party_labels)
+
+# Create a color palette with 12 colors plus black for NA
+colors <- c(brewer.pal(11, "Set3"), "grey", "black")  # Adjust number of colors if necessary
+
+# Adding 'prtvteit' to coordinates for plotting and ensuring it's a factor with proper labels
+coordinates$prtvteit <- factor(data$prtvteit, levels = names(party_labels), labels = party_labels)
 
 # Generate plots for each dimension against all others and save in separate files
 for (k in 1:5) {
   plot_list <- list()
   for (i in 1:5) {
-    # Create a ggplot object for the k-th dimension against the i-th dimension
-    p <- ggplot(data = coordinates, aes_string(x = colnames(coordinates)[k], y = colnames(coordinates)[i])) +
-      geom_point(color = colors[i]) +
+    p <- ggplot(data = coordinates, aes_string(x = colnames(coordinates)[k], y = colnames(coordinates)[i], color = "prtvteit")) +
+      geom_point() +
+      scale_color_manual(values = colors, breaks = names(party_labels), labels = party_labels) +
       labs(x = paste("Dimension", k), y = paste("Dimension", i)) +
       theme_minimal() +
-      theme(legend.position = "none")
+      theme(legend.position = "right")
     plot_list[[i]] <- p
   }
   grid_plots <- do.call(gridExtra::grid.arrange, c(plot_list, ncol = 1, nrow = 5))
-  # Save each grid to a separate file, adjusting dimensions to a more reasonable size
   file_name <- sprintf("multidimensionalscaling_dimension%d.png", k)
   ggsave(file_name, grid_plots, width = 10, height = 20, dpi = 300, units = "in", limitsize = FALSE)
 }
