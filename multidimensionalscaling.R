@@ -11,17 +11,17 @@ browser()
 data[, 43:50] <- lapply(data[, 43:50], function(x) as.numeric(as.character(x)) - 1)
 
 # Ensure ordinal variables are treated as such
-data[c(3:42,51:63)] <- lapply(data[9:63], as.ordered)
+data[c(3:42,51:63)] <- lapply(data[c(3:42,51:63)], as.ordered)
 
 # Include the 'prtvteit' variable for coloring
 data$prtvteit <- as.factor(data$prtvteit)
-data$prtclfit <- as.factor(data$prtvteprtclfitit)
+data$prtclfit <- as.factor(data$prtclfit)
 
 # Create a vector of variable types for Gower distance calculation
 variable_types <- list(
   ord = c(3:42,51:63),  # Columns 1-42 and 51-63 as ordinal
   symm = 43:50,
-  asymm = 1:2          # Columns 43-50 as symmetric
+  factor = 1:2          # Columns 43-50 as symmetric
 )
 
 # Calculation of Gower distance matrix
@@ -30,9 +30,7 @@ gower_distance <- daisy(data, metric = "gower", type = variable_types)
 # Calculation of two-dimensional Multidimensional Scaling with smacof
 mds_result <- mds(gower_distance, ndim = 5)
 coordinates <- as.data.frame(mds_result$conf)
-coordinates$prtvteit <- data$prtvteit  # Add 'prtvteit' to coordinates for plotting
-colnames(coordinates) <- c(paste("Dim", 1:5, sep = "."), "prtvteit")
-
+colnames(coordinates) <- paste("Dim", 1:5, sep = ".")
 party_labels <- setNames(as.character(1:11), c("Fratelli d'Italia", "Partito Democratico (PD)", "Movimento 5 Stelle",
                                               "Lega", "Forza Italia", "Terzo Polo (Azione-Italia Viva)",
                                               "Alleanza Verdi e Sinistra", "+ Europa", "Italexit",
@@ -45,7 +43,7 @@ data$prtvteit <- factor(data$prtvteit, levels = names(party_labels), labels = pa
 colors <- c(brewer.pal(11, "Set3"), "grey", "black")  # Adjust number of colors if necessary
 
 # Adding 'prtvteit' to coordinates for plotting and ensuring it's a factor with proper labels
-coordinates$prtvteit <- factor(data$prtvteit, levels = names(party_labels), labels = party_labels)
+coordinates$prtvteit <- factor(data$prtvteit, levels = names(party_labels), labels = party_labels) 
 
 # Generate plots for each dimension against all others and save in separate files
 for (k in 1:5) {
