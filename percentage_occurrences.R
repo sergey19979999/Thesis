@@ -4,7 +4,7 @@ library(tidyr)
 library(gridExtra) # for grid.table()
 
 # Read data from CSV
-data <- read.csv("ESS11/ESS11_ita_NA.csv")
+data <- read.csv("ESS11/ESS11_ita_prepro.csv")
 
 
 # Select relevant variables
@@ -38,7 +38,7 @@ percentages_wide <- calculate_percentages_and_pivot(selected_data)
 print(percentages_wide)
 
 # Save the table as PNG
-png(filename = "Images/percentages_table_11.png", width = 900, height = 600)
-grid.table(percentages_wide)
-dev.off()
+# png(filename = "Images/percentages_table_11.png", width = 900, height = 600)
+# grid.table(percentages_wide)
+# dev.off()
 
