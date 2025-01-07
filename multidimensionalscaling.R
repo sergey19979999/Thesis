@@ -12,37 +12,29 @@ data[, 43:50] <- lapply(data[, 43:50], function(x) as.numeric(as.character(x)) -
 
 # Ensure ordinal variables are treated as such
 data[c(2:43,51:63)] <- lapply(data[c(2:43,51:63)], as.ordered)
-
-# Include the 'prtvteit' variable for coloring
-data$prtvteit <- as.factor(data$prtvteit)
-
-# Calculation of Gower distance matrix
-gower_distance <- daisy(data, metric = "gower", type = list(symm = 43:50, ord = 9:60))
+data <- data[!is.na(data$lrscale),]
+# Exclude variables from the Gower distance calculation
+distance_data <- data[, !(names(data) %in% c("lrscale", "prtclfit", "prtvteit"))]
+browser()
+gower_distance <- daisy(distance_data, metric = "gower", type = list(symm = 40:47, ord = c(1:39,41:60)))
 
 # Calculation of two-dimensional Multidimensional Scaling with smacof
 mds_result <- mds(gower_distance, ndim = 5)
 coordinates <- as.data.frame(mds_result$conf)
-coordinates$prtvteit <- data$prtvteit  # Add 'prtvteit' to coordinates for plotting
-colnames(coordinates) <- c(paste("Dim", 1:5, sep = "."), "prtvteit")
 
-# Generate a color palette with 13 colors (12 colors + black for NA)
-colors <- c(brewer.pal(12, "Set3"), "black")  # Adjust palette name and type as needed
+coordinates$lrscale <- as.factor(data$lrscale)  # Use lrscale for coloring
 
-levels_prtvteit <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "31")
-labels_prtvteit <- c("Fratelli d'Italia", "Partido Democratico (PD)", "Movimento 5 Stelle", "Lega",
-                     "Forza Italia", "Terzo Polo (Azione-Italia Viva)", "Alleanza Verdi e Sinistra", 
-                     "+ Europa", "Italexit", "Unione Popolare", "Italia Sovrana e Popolare", "Altro")
-
-data$prtvteit <- factor(data$prtvteit, levels = levels_prtvteit, labels = labels_prtvteit)
+# Generate a color palette
+colors <- RColorBrewer::brewer.pal(11, "Set3")  # Assuming lrscale has 9 unique values
 
 for (k in 1:5) {
   plot_list <- list()
   for (i in 1:5) {
     if (k != i) {  # Ensure that we don't plot a dimension against itself
-      p <- ggplot(data = coordinates, aes_string(x = colnames(coordinates)[k], y = colnames(coordinates)[i], color = "prtvteit")) +
+      p <- ggplot(data = coordinates, aes_string(x = colnames(coordinates)[k], y = colnames(coordinates)[i], color = "lrscale")) +
         geom_point() +
         scale_color_manual(values = colors) +
-        labs(x = paste("Dimension", k), y = paste("Dimension", i), color = "Party") +
+        labs(x = paste("Dimension", k), y = paste("Dimension", i), color = "Lrscale") +
         theme_minimal() +
         theme(legend.position = "right")
       plot_list[[i]] <- p
