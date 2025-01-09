@@ -19,7 +19,7 @@ browser()
 gower_distance <- daisy(distance_data, metric = "gower", type = list(symm = 40:47, ord = c(1:39,41:60)))
 
 # Calculation of two-dimensional Multidimensional Scaling with smacof
-mds_result <- mds(gower_distance, ndim = 5)
+mds_result <- mds(gower_distance, ndim = 10)
 coordinates <- as.data.frame(mds_result$conf)
 
 coordinates$lrscale <- as.factor(data$lrscale)  # Use lrscale for coloring
@@ -27,9 +27,9 @@ coordinates$lrscale <- as.factor(data$lrscale)  # Use lrscale for coloring
 # Generate a color palette
 colors <- RColorBrewer::brewer.pal(11, "Set3")  # Assuming lrscale has 9 unique values
 
-for (k in 1:5) {
+for (k in 1:10) {
   plot_list <- list()
-  for (i in 1:5) {
+  for (i in 1:10) {
     if (k != i) {  # Ensure that we don't plot a dimension against itself
       p <- ggplot(data = coordinates, aes_string(x = colnames(coordinates)[k], y = colnames(coordinates)[i], color = "lrscale")) +
         geom_point() +
@@ -40,7 +40,7 @@ for (k in 1:5) {
       plot_list[[i]] <- p
     }
   }
-  grid_plots <- do.call(gridExtra::grid.arrange, c(plot_list, ncol = 1, nrow = 5))
+  grid_plots <- do.call(gridExtra::grid.arrange, c(plot_list, ncol = 2, nrow = 5))
   file_name <- sprintf("Images/multidimensionalscaling_dimension%d.png", k)
   ggsave(file_name, grid_plots, width = 10, height = 20, dpi = 300, units = "in", limitsize = FALSE)
 }
