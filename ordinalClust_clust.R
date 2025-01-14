@@ -64,8 +64,8 @@ time_taken <- system.time({
                       nbSEMburn = nbsemburn, nbindmini = nbindmini,
                       init = init)
 })
-file_name_object <- sprintf("Results/bosclust/object%d.rds", kr)
+file_name_object <- sprintf("Results/bosclust/object%d.rds", krow)
 saveRDS(object, file = file_name_object)
-file_name_time <- sprintf("Results/bosclust/time_taken%d.rds", kr)
+file_name_time <- sprintf("Results/bosclust/time_taken%d.rds", krow)
 saveRDS(time_taken, file = file_name_time)
 

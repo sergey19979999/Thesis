@@ -9,7 +9,7 @@ data <- read.csv("ESS11/ESS11_ita_prepro.csv")
 # Convert all character columns to factors to ensure consistency
 data[] <- lapply(data, function(x) factor(x))
 
-# Identify variables with exactly 6 unique non-NA levels
+# Identify variables with exactly num-level (from environment) unique non-NA levels
 numlevel_vars <- sapply(data, function(x) {
   # Levels function automatically excludes NA values in its count
   return(length(levels(x)) == num_level)
@@ -36,12 +36,12 @@ selected_data$lrscale_grouped <- factor(selected_data$lrscale,
 grouped_colors <- c(
   "Dx" = "blue",
   "Sx" = "red",
-  "Center" = "yellow"
+  "Center" = "green"
 )
 
 # Prepare for plotting by excluding 'lrscale' and 'lrscale_grouped' from the plotting variables
 plot_vars <- setdiff(variable_names, c("lrscale", "lrscale_grouped"))
-
+browser()
 # Generate plots
 plot_list <- list()
 plot_count <- 0
@@ -51,7 +51,7 @@ image_count <- 0
 for (i in 1:(length(plot_vars) - 1)) {
   for (j in (i + 1):length(plot_vars)) {
     p <- ggplot(selected_data, aes_string(x = plot_vars[i], y = plot_vars[j])) +
-      geom_point(aes(color = lrscale_grouped), position = position_jitter(width = 0.3, height = 0.3), na.rm = TRUE) +  # Augmented jittering
+      geom_point(aes(color = lrscale_grouped), position = position_jitter(width = 0.2, height = 0.2), na.rm = TRUE, size = 5) +  # Augmented jittering
       scale_color_manual(values = grouped_colors) +
       labs(x = plot_vars[i], y = plot_vars[j]) +  # Removed color label for simplicity
       theme_minimal() +
@@ -59,10 +59,10 @@ for (i in 1:(length(plot_vars) - 1)) {
     plot_list[[length(plot_list) + 1]] <- p
     plot_count <- plot_count + 1
     
-    # Save every 10 plots
-    if (plot_count == 4) {
+    # Save every 2 plots
+    if (plot_count == 2) {
       image_count <- image_count + 1
-      grid_plots <- do.call(gridExtra::grid.arrange, c(plot_list, ncol = 1, nrow = 4))
+      grid_plots <- do.call(gridExtra::grid.arrange, c(plot_list, ncol = 1, nrow = 2))
       file_name <- sprintf("Images/plot_%d.png", image_count)
       ggsave(file_name, grid_plots, width = 40, height = 40, dpi = 300, units = "in")
       plot_list <- list()

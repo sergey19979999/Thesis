@@ -36,9 +36,3 @@ percentages_wide <- calculate_percentages_and_pivot(selected_data)
 
 # Print the results in the console
 print(percentages_wide)
-
-# Save the table as PNG
-# png(filename = "Images/percentages_table_11.png", width = 900, height = 600)
-# grid.table(percentages_wide)
-# dev.off()
-
