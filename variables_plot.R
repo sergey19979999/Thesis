@@ -11,7 +11,6 @@ data[] <- lapply(data, function(x) factor(x))
 
 # Identify variables with exactly num-level (from environment) unique non-NA levels
 numlevel_vars <- sapply(data, function(x) {
-  # Levels function automatically excludes NA values in its count
   return(length(levels(x)) == num_level)
 })
 
@@ -26,22 +25,15 @@ selected_data <- data %>%
 # Group and merge categories into new levels
 selected_data$lrscale_grouped <- factor(selected_data$lrscale,
     levels = c(1:11),
-    labels = c(
-        "Sx", "Sx", "Sx", "Sx","Center",
-        "Center", "Center", "Dx", "Dx", "Dx", "Dx"
-    )
+    labels = c("Sx", "Sx", "Sx", "Sx", "Center", "Center", "Center", "Dx", "Dx", "Dx", "Dx")
 )
 
 # Create a color palette for the grouped levels
-grouped_colors <- c(
-  "Dx" = "blue",
-  "Sx" = "red",
-  "Center" = "green"
-)
+grouped_colors <- c("Dx" = "blue", "Sx" = "red", "Center" = "green")
 
 # Prepare for plotting by excluding 'lrscale' and 'lrscale_grouped' from the plotting variables
 plot_vars <- setdiff(variable_names, c("lrscale", "lrscale_grouped"))
-browser()
+
 # Generate plots
 plot_list <- list()
 plot_count <- 0
@@ -51,11 +43,16 @@ image_count <- 0
 for (i in 1:(length(plot_vars) - 1)) {
   for (j in (i + 1):length(plot_vars)) {
     p <- ggplot(selected_data, aes_string(x = plot_vars[i], y = plot_vars[j])) +
-      geom_point(aes(color = lrscale_grouped), position = position_jitter(width = 0.2, height = 0.2), na.rm = TRUE, size = 5) +  # Augmented jittering
+      geom_point(aes(color = lrscale_grouped), position = position_jitter(width = 0.2, height = 0.2), na.rm = TRUE, size = 5) +
       scale_color_manual(values = grouped_colors) +
-      labs(x = plot_vars[i], y = plot_vars[j]) +  # Removed color label for simplicity
+      labs(x = plot_vars[i], y = plot_vars[j], title = paste(plot_vars[i], "vs", plot_vars[j])) +
       theme_minimal() +
-      theme(legend.position = "none")  # Exclude legend in individual plots
+      theme(text = element_text(size = 16),
+            axis.text.x = element_text(angle = 45, hjust = 1),
+            axis.title = element_text(size = 18),
+            plot.title = element_text(size = 20, face = "bold"),
+            legend.position = "right",
+            legend.text = element_text(size = 14))
     plot_list[[length(plot_list) + 1]] <- p
     plot_count <- plot_count + 1
     
@@ -85,5 +82,5 @@ legend_plot <- ggplot(selected_data, aes(x = 1, y = 1, color = lrscale_grouped))
   scale_color_manual(values = grouped_colors) +
   labs(color = "Group") +
   theme_void() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom", legend.text = element_text(size = 14))
 ggsave("Images/legend_grouped.png", legend_plot, width = 10, height = 8, dpi = 300, units = "in")
