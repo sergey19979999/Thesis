@@ -53,38 +53,40 @@ no_cores <- detectCores() - 1  # using one less than the total number of cores
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
+# Set parameters for bosclust
+nbsem <- 150
+nbsemburn <- 100
+nbindmini <- 1
+init <- "random"
+levels <- c(2,3,4,5,6,7,7)
+indexes <- c(1,9,10,14,21,45,50)
+row_cluster <- 3:12
+column_cluster <- list(c(2,1,1,2,2,1,1), c(3,1,1,2,2,1,1),
+                    c(2,1,1,2,3,1,1), c(2,1,1,2,2,1,2), c(3,1,1,2,3,1,1),
+                    c(3,1,1,2,2,1,2), c(2,1,1,2,3,1,2),
+                    c(3,1,1,2,3,1,2), c(2,1,1,2,4,1,1), c(3,1,1,2,4,1,1),
+                    c(3,1,1,2,4,1,2), c(2,1,1,2,4,1,2))
+
+icl_matrix <- matrix(NA, nrow = length(row_cluster), ncol = length(column_cluster))
+time_matrix <- matrix(NA, nrow = length(row_cluster), ncol = length(column_cluster))
+browser()
 # Ensure the cluster workers have access to required libraries and objects
 clusterEvalQ(cl, {
   library(ordinalClust)  # Load the required library within each worker
 })
 clusterExport(cl, varlist = c("data_matrix", "levels", "indexes", "nbsem", "nbsemburn", "nbindmini", "init"))
 
-# Set parameters for bosclust
-nbsem <- 150
-nbsemburn <- 100
-nbindmini <- 1
-init <- "random"
-levels <- c(2,3,4,5,6,7)
-indexes <- c(1,9,10,14,21,45)
-row_cluster <- 3:12
-column_cluster <- list(c(2,1,1,2,2,2), c(3,1,1,2,2,2),
-                    c(2,1,1,2,3,2), c(2,1,1,2,2,3), c(3,1,1,2,3,2),
-                    c(3,1,1,2,2,3), c(2,1,1,2,3,3),
-                    c(3,1,1,2,3,3), c(2,1,1,2,4,2), c(3,1,1,2,4,2),
-                    c(3,1,1,2,4,3), c(2,1,1,2,4,3))
-
-icl_matrix <- matrix(NA, nrow = length(row_cluster), ncol = length(column_cluster))
-time_matrix <- matrix(NA, nrow = length(row_cluster), ncol = length(column_cluster))
-
 results <- foreach(kr = row_cluster, .combine = 'cbind') %:% 
   foreach(kc = iter(column_cluster, by='row'), .combine = 'rbind') %dopar% {
-    system.time({
-      object <- boscoclust(x = data_matrix, kr = kr, kc = kc, m = levels, 
-                           idx_list = indexes, nbSEM = nbsem, 
-                           nbSEMburn = nbsemburn, nbindmini = nbindmini,
-                           init = init)
-    })
-    list(icl = object$icl, time = proc.time()[3])  # Collect only the elapsed time
+    start_time <- proc.time()
+    object <- boscoclust(x = data_matrix, kr = kr, kc = kc, m = levels, 
+                         idx_list = indexes, nbSEM = nbsem, 
+                         nbSEMburn = nbsemburn, nbindmini = nbindmini,
+                         init = init)
+    end_time <- proc.time()
+    elapsed_time <- end_time[3] - start_time[3]
+    print(sprintf("ESEGUITO modello numero cluster righe = %d e lista cluster colonne = %s", kr, toString(kc)))
+    list(icl = object$icl, time = elapsed_time)  # Collect only the elapsed time
   }
 
 stopCluster(cl)

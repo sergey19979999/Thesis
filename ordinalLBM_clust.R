@@ -63,15 +63,14 @@ for (k in krow) {
 best_icl <- which(icl_matrix == max(icl_matrix, na.rm = TRUE), arr.ind = TRUE)
 best_k <- krow[best_icl[1]]
 best_cc <- column_cluster[best_icl[2]]
-browser()
-# Rerun the best model to save it
+
 set.seed(1)
-pritn(c(k,cc))
+
 best_model <- olbm(Y = data_matrix_sixlevels, Q = best_k, L = best_cc, init = "random", eps = 1e-02, it_max = 500, verbose = FALSE)
 
 # Save the best model, time list, and ICL matrix
 saveRDS(best_model, file = sprintf("Results/olbmclust/best_model_%d_%d.rds",best_k, best_cc))
-saveRDS(time_list, file = "Results/olbmclust/time_list.rds")
+saveRDS(time_matrix, file = "Results/olbmclust/time_list.rds")
 saveRDS(icl_matrix, file = "Results/olbmclust/icl_matrix.rds")
 
 
