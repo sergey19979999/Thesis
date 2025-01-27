@@ -1,11 +1,7 @@
 library(ordinalClust)
-library(doParallel)
-library(foreach)
-library(iterators)
 
 set.seed(1)
 
-# Load and preprocess the data
 data <- read.csv("ESS11/ESS11_ita_prepro.csv")
 data <- subset(data, select = -c(prtvteit, prtclfit, lrscale))
 data[1:60] <- lapply(data[1:60], function(x) if(is.character(x)) factor(x, ordered = TRUE) else x)
@@ -16,13 +12,9 @@ levels_count <- sapply(data, function(x) {
   } else if(is.numeric(x)) {
     length(unique(na.omit(x)))
   } else {
-    NA  # Handle other unexpected data types gracefully
+    NA
   }
 })
-
-if(any(is.na(levels_count))) {
-  cat("There are columns with unsupported data types for counting levels.\n")
-}
 
 levels_info <- data.frame(column_name = names(levels_count), levels = levels_count, stringsAsFactors = FALSE)
 levels_info <- levels_info[!is.na(levels_info$levels), ]
@@ -30,8 +22,7 @@ ordered_levels_info <- levels_info[order(levels_info$levels),]
 data_ordered <- data[ordered_levels_info$column_name]
 data_matrix <- as.matrix(data_ordered)
 
-# Assuming data_matrix is your existing matrix and has been ordered as needed
-for (i in 50:60) {  # Looping through columns 50 to 60
+for (i in 50:60) {
     data_matrix[, i] <- factor(apply(data_matrix[, i, drop = FALSE], 1, function(x) {
         if (x %in% c(1, 2)) {
             return(1)  # Merging levels 1 and 2
@@ -44,18 +35,14 @@ for (i in 50:60) {  # Looping through columns 50 to 60
         } else if (x %in% c(10, 11)) {
             return(7)  # Merging levels 10 and 11
         } else {
-            return(NA)  # In case of unexpected values
+            return(NA)
         }
     }), levels = 1:7, labels = 1:7)  # Using numeric labels directly
 }
 
-no_cores <- detectCores() - 1  # using one less than the total number of cores
-cl <- makeCluster(no_cores)
-registerDoParallel(cl)
-
-# Set parameters for bosclust
-nbsem <- 150
-nbsemburn <- 100
+# Set parameters for boscoclust
+nbsem <- 50
+nbsemburn <- 35
 nbindmini <- 1
 init <- "random"
 levels <- c(2,3,4,5,6,7,7)
@@ -70,34 +57,33 @@ column_cluster <- list(c(2,1,1,2,2,1,1), c(3,1,1,2,2,1,1),
 icl_matrix <- matrix(NA, nrow = length(row_cluster), ncol = length(column_cluster))
 time_matrix <- matrix(NA, nrow = length(row_cluster), ncol = length(column_cluster))
 browser()
-# Ensure the cluster workers have access to required libraries and objects
-clusterEvalQ(cl, {
-  library(ordinalClust)  # Load the required library within each worker
-})
-clusterExport(cl, varlist = c("data_matrix", "levels", "indexes", "nbsem", "nbsemburn", "nbindmini", "init"))
-
-results <- foreach(kr = row_cluster, .combine = 'cbind') %:% 
-  foreach(kc = iter(column_cluster, by='row'), .combine = 'rbind') %dopar% {
-    start_time <- proc.time()
-    object <- boscoclust(x = data_matrix, kr = kr, kc = kc, m = levels, 
-                         idx_list = indexes, nbSEM = nbsem, 
-                         nbSEMburn = nbsemburn, nbindmini = nbindmini,
-                         init = init)
-    end_time <- proc.time()
-    elapsed_time <- end_time[3] - start_time[3]
-    print(sprintf("ESEGUITO modello numero cluster righe = %d e lista cluster colonne = %s", kr, toString(kc)))
-    list(icl = object$icl, time = elapsed_time)  # Collect only the elapsed time
-  }
-
-stopCluster(cl)
-
-# Processing the results matrix to fill the pre-allocated matrices
-for (i in 1:length(row_cluster)) {
-  for (j in 1:length(column_cluster)) {
-    icl_matrix[i, j] <- results[[i, j]]$icl
-    time_matrix[i, j] <- results[[i, j]]$time
+col_index <- 1
+for (kr in row_cluster) {
+    for(cc in column_cluster){
+        result <- tryCatch({time_taken <- system.time({object <- boscoclust(x = data_matrix, kr = kr, kc = cc, m = levels, 
+                                idx_list = indexes, nbSEM = nbsem, 
+                                nbSEMburn = nbsemburn, nbindmini = nbindmini,
+                                init = init)
+                                })
+        list(icl = object@icl, time = time_taken["user.self"]+ time_taken["sys.self"])
+        }, error = function(e) {
+        # If an error occurs, print the error message and return -Inf for icl and Inf for time
+        message("Error in olbm: ", e$message)
+        list(icl = -Inf, time = Inf)
+        })
+        print(c(kr,cc))
+        # Store the results appropriately
+        if (length(object@icl) > 0){
+        icl_matrix[kr-2,col_index] <- object@icl
+        }
+        else {
+           icl_matrix[kr-2,col_index] <- -Inf
+        }
+        time_matrix[kr-2,col_index]<- time_taken["user.self"]+ time_taken["sys.self"]
+        col_index <- col_index + 1
   }
 }
+
 
 # Find the best model based on ICL
 best_icl <- which(icl_matrix == max(icl_matrix, na.rm = TRUE), arr.ind = TRUE)
@@ -109,7 +95,7 @@ best_model <- boscoclust(x = data_matrix, kr = best_k,
                     idx_list = indexes, nbSEM = nbsem,
                     nbSEMburn = nbsemburn, nbindmini = nbindmini,
                     init = init)
-
+browser()
 # Save the best model, time list, and ICL matrix
 saveRDS(best_model, file = sprintf("Results/boscoclust/best_model_%d_%d.rds", best_k, best_cc))
 saveRDS(time_matrix, file = "Results/boscoclust/time_list.rds")

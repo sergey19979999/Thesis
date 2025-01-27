@@ -2,7 +2,7 @@
 library(ordinalLBM)
 
 data <- read.csv("ESS11/ESS11_ita_prepro.csv")
-# data <- data[, -((ncol(data) - 2):ncol(data))]
+data <- data[, -((ncol(data) - 2):ncol(data))]
 data[1:60] <- lapply(data[1:60], function(x) if(is.character(x)) factor(x, ordered = TRUE) else x)
 levels_count <- sapply(data, function(x) {
   if(is.factor(x) || is.character(x)) {
@@ -23,12 +23,12 @@ levels_info <- levels_info[!is.na(levels_info$levels), ]
 ordered_levels_info <- levels_info[order(levels_info$levels),]
 data_ordered <- data[ordered_levels_info$column_name]
 data_matrix <- as.matrix(data_ordered)
-
+browser()
 data_matrix_sixlevels <- data_matrix[, 19:41]
 set.seed(1)
 
-# best_model <- olbm(Y = data_matrix_sixlevels, Q = 11, L = 8, init = "random", eps = 1e-02, it_max = 500)
-
+best_model <- olbm(Y = data_matrix_sixlevels, Q = 11, L = 8, init = "random", eps = 1e-02, it_max = 500)
+browser()
 plot_olbm_custom_grouped <- function(x) {
   res <- x
   paletta <- RColorBrewer::brewer.pal(12, name = "Paired")
@@ -46,8 +46,6 @@ plot_olbm_custom_grouped <- function(x) {
   delta <- res$delta
   rho <- res$rho
   Pi <- res$Pi
-
-  dir.create("IMAGES", showWarnings = FALSE)  # Create the directory if it does not exist
 
   for (l in 1:L) {
     filename <- sprintf("IMAGES/cluster_col_%d.png", l)  # Define the filename for each image

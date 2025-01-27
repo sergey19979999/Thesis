@@ -34,16 +34,14 @@ grouped_colors <- c("Dx" = "blue", "Sx" = "red", "Center" = "green")
 # Prepare for plotting by excluding 'lrscale' and 'lrscale_grouped' from the plotting variables
 plot_vars <- setdiff(variable_names, c("lrscale", "lrscale_grouped"))
 
-# Generate plots
-plot_list <- list()
-plot_count <- 0
+# Generate and save each plot
 image_count <- 0
 
 # Plot each variable against each other
 for (i in 1:(length(plot_vars) - 1)) {
   for (j in (i + 1):length(plot_vars)) {
     p <- ggplot(selected_data, aes_string(x = plot_vars[i], y = plot_vars[j])) +
-      geom_point(aes(color = lrscale_grouped), position = position_jitter(width = 0.2, height = 0.2), na.rm = TRUE, size = 5) +
+      geom_point(aes(color = lrscale_grouped), position = position_jitter(width = 0.2, height = 0.2), na.rm = TRUE, size = 1) +
       scale_color_manual(values = grouped_colors) +
       labs(x = plot_vars[i], y = plot_vars[j], title = paste(plot_vars[i], "vs", plot_vars[j])) +
       theme_minimal() +
@@ -53,27 +51,12 @@ for (i in 1:(length(plot_vars) - 1)) {
             plot.title = element_text(size = 20, face = "bold"),
             legend.position = "right",
             legend.text = element_text(size = 14))
-    plot_list[[length(plot_list) + 1]] <- p
-    plot_count <- plot_count + 1
-    
-    # Save every 2 plots
-    if (plot_count == 2) {
-      image_count <- image_count + 1
-      grid_plots <- do.call(gridExtra::grid.arrange, c(plot_list, ncol = 1, nrow = 2))
-      file_name <- sprintf("Images/plot_%d.png", image_count)
-      ggsave(file_name, grid_plots, width = 40, height = 40, dpi = 300, units = "in")
-      plot_list <- list()
-      plot_count <- 0
-    }
-  }
-}
 
-# Handle the remaining plots if any
-if (length(plot_list) > 0) {
-  image_count <- image_count + 1
-  grid_plots <- do.call(gridExtra::grid.arrange, c(plot_list, ncol = 1, nrow = ceiling(length(plot_list) / 2)))
-  file_name <- sprintf("Images/plot_%d.png", image_count)
-  ggsave(file_name, grid_plots, width = 40, height = 40, dpi = 300, units = "in")
+    # Save each plot as a separate image
+    image_count <- image_count + 1
+    file_name <- sprintf("Images/plot_%d.png", image_count)
+    ggsave(file_name, p, width = 8, height = 8, dpi = 300, units = "in")
+  }
 }
 
 # Save a legend separately for reference
