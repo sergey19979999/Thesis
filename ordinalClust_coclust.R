@@ -41,46 +41,43 @@ for (i in 50:60) {
 }
 
 # Set parameters for boscoclust
-nbsem <- 50
-nbsemburn <- 35
+nbsem <- 25
+nbsemburn <- 15
 nbindmini <- 1
 init <- "random"
 levels <- c(2,3,4,5,6,7,7)
 indexes <- c(1,9,10,14,21,45,50)
-row_cluster <- 3:12
-column_cluster <- list(c(2,1,1,2,2,1,1), c(3,1,1,2,2,1,1),
-                    c(2,1,1,2,3,1,1), c(2,1,1,2,2,1,2), c(3,1,1,2,3,1,1),
-                    c(3,1,1,2,2,1,2), c(2,1,1,2,3,1,2),
+
+browser()
+row_cluster <- 8:12
+column_cluster <- list(
+                    # c(2,1,1,2,2,1,1), c(3,1,1,2,2,1,1),
+                    # c(2,1,1,2,3,1,1), c(2,1,1,2,2,1,2), c(3,1,1,2,3,1,1),
+                    # c(3,1,1,2,2,1,2), c(2,1,1,2,3,1,2),
                     c(3,1,1,2,3,1,2), c(2,1,1,2,4,1,1), c(3,1,1,2,4,1,1),
                     c(3,1,1,2,4,1,2), c(2,1,1,2,4,1,2))
 
 icl_matrix <- matrix(NA, nrow = length(row_cluster), ncol = length(column_cluster))
-time_matrix <- matrix(NA, nrow = length(row_cluster), ncol = length(column_cluster))
+set.seed(1)
 browser()
-col_index <- 1
 for (kr in row_cluster) {
+    col_index <- 1
     for(cc in column_cluster){
-        result <- tryCatch({time_taken <- system.time({object <- boscoclust(x = data_matrix, kr = kr, kc = cc, m = levels, 
+        print(sprintf("Model: row_clusters = %d, column_clusters = %s", kr, toString(cc)))
+        object <- boscoclust(x = data_matrix, kr = kr, kc = cc, m = levels, 
                                 idx_list = indexes, nbSEM = nbsem, 
                                 nbSEMburn = nbsemburn, nbindmini = nbindmini,
                                 init = init)
-                                })
-        list(icl = object@icl, time = time_taken["user.self"]+ time_taken["sys.self"])
-        }, error = function(e) {
-        # If an error occurs, print the error message and return -Inf for icl and Inf for time
-        message("Error in olbm: ", e$message)
-        list(icl = -Inf, time = Inf)
-        })
-        print(c(kr,cc))
         # Store the results appropriately
         if (length(object@icl) > 0){
-        icl_matrix[kr-2,col_index] <- object@icl
+        icl_matrix[kr-7,col_index] <- object@icl
+        browser()
         }
         else {
-           icl_matrix[kr-2,col_index] <- -Inf
+           icl_matrix[kr-7,col_index] <- -Inf
         }
-        time_matrix[kr-2,col_index]<- time_taken["user.self"]+ time_taken["sys.self"]
         col_index <- col_index + 1
+        print(icl_matrix)
   }
 }
 
@@ -97,6 +94,5 @@ best_model <- boscoclust(x = data_matrix, kr = best_k,
                     init = init)
 browser()
 # Save the best model, time list, and ICL matrix
-saveRDS(best_model, file = sprintf("Results/boscoclust/best_model_%d_%d.rds", best_k, best_cc))
-saveRDS(time_matrix, file = "Results/boscoclust/time_list.rds")
+saveRDS(best_model, file = sprintf("Results/boscoclust/best_model.rds", best_k, best_cc))
 saveRDS(icl_matrix, file = "Results/boscoclust/icl_matrix.rds")

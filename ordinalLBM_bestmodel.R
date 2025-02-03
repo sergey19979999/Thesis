@@ -28,7 +28,7 @@ data_matrix_sixlevels <- data_matrix[, 19:41]
 set.seed(1)
 
 best_model <- olbm(Y = data_matrix_sixlevels, Q = 11, L = 8, init = "random", eps = 1e-02, it_max = 500)
-browser()
+
 plot_olbm_custom_grouped <- function(x) {
   res <- x
   paletta <- RColorBrewer::brewer.pal(12, name = "Paired")

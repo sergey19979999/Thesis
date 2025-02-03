@@ -23,10 +23,9 @@ levels_info <- levels_info[!is.na(levels_info$levels), ]
 ordered_levels_info <- levels_info[order(levels_info$levels),]
 data_ordered <- data[ordered_levels_info$column_name]
 data_matrix <- as.matrix(data_ordered)
-best_model <- readRDS("Results/bosclust/object12.rds")
+best_model <- readRDS("Results/boscoclust/best_model.rds")
 # actually there is not need in reordering data since ARI is invariant under data reorder
 best_model_membership <- best_model@zr
-browser()
 # Function to compute the adjusted Rand Index, removing NAs for each comparison
 compute_ARI <- function(cluster_from_model, comparison_var) {
   # Removing NA entries from the comparison variable
@@ -43,7 +42,6 @@ compute_ARI <- function(cluster_from_model, comparison_var) {
 
 # Compute Adjusted Rand Index for each additional variable
 ari_lrscale <- compute_ARI(best_model_membership, "lrscale")
-browser()
 ari_prtvteit <- compute_ARI(best_model_membership, "prtvteit")
 ari_prtclfit <- compute_ARI(best_model_membership, "prtclfit")
 
