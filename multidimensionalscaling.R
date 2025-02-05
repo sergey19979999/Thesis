@@ -4,7 +4,7 @@ library(gridExtra)
 library(ggplot2)
 library(RColorBrewer)
 
-# Read CSV file
+# Read CSV file check
 data <- read.csv("ESS11/ESS11_ita_prepro.csv")
 
 # Transform binary variables (columns 43-50) from 1,2 to 0,1 and ensure they are numeric
